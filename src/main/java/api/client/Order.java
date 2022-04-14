@@ -1,3 +1,5 @@
+package api.client;
+
 import java.util.List;
 
 public class Order {

@@ -1,9 +1,10 @@
+import api.client.CourierClient;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class DeleteCourierWithWrongIdTest {
@@ -20,58 +21,27 @@ public class DeleteCourierWithWrongIdTest {
         RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
     }
 
-    @Test
+    @Test @DisplayName("Check deleting the courier with wrong id")
     public void deleteCourierWithWrongId() {
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
-        response.then().assertThat().body("ok", equalTo(true))
-                .and()
-                .statusCode(201);
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        String id = response2.body().asString().replace("\"id\":", "").
+        CourierClient courierClient = new CourierClient();
+        courierClient.creationCourier(json);
+        Response loginCourierResponse = courierClient.loginCourier(json2);
+        String id = loginCourierResponse.body().asString().replace("\"id\":", "").
                 trim().replace("{", "").replace("}", "");
         String json3 = "{\"id\": " + id + "}";
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json3)
-                        .when()
-                        .delete("/api/v1/courier/" + 5);
-        response3.then().assertThat().body("message", equalTo("Курьера с таким id нет"))//Согласно документации в тексте предупреждения отсутствует точка в конце
+        Response deleteCourierResponse = courierClient.deleteCourier(json3, "5");
+        deleteCourierResponse.then().assertThat().body("message", equalTo("Курьера с таким id нет"))//Согласно документации в тексте предупреждения отсутствует точка в конце
                 .and()
                 .statusCode(404);
     }
 
     @After
     public void cleanUp() {
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        String id = response2.body().asString().replace("\"id\":", "").
+        CourierClient courierClient = new CourierClient();
+        Response loginCourierResponse = courierClient.loginCourier(json);
+        String id = loginCourierResponse.body().asString().replace("\"id\":", "").
                 trim().replace("{", "").replace("}", "");
         String json3 = "{\"id\": " + id + "}";
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json3)
-                        .when()
-                        .delete("/api/v1/courier/" + id);
+        courierClient.deleteCourier(json3, id);
     }
 }

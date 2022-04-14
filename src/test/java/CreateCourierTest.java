@@ -1,9 +1,10 @@
+import api.client.CourierClient;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class CreateCourierTest {
@@ -20,60 +21,36 @@ public class CreateCourierTest {
         RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
     }
 
-     @Test
-    public void creationCourier() {
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
-        response.then().assertThat().body("ok", equalTo(true))
+     @Test @DisplayName("Check containing of word and statusCode of creation " +
+             "the courier with all needed fields")
+    public void creationCourierTest() {
+         CourierClient courierClient = new CourierClient();
+         Response createCourierResponse = courierClient.creationCourier(json);
+         createCourierResponse.then().assertThat().body("ok", equalTo(true))
                 .and()
                 .statusCode(201);
     }
 
-    @Test
+    @Test @DisplayName("Check containing of word and statusCode of creation courier with the same fields " +
+            "of the courier, who was created before")
+
     public void createSameCourier() {
-        Response response1 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
-        response2.then().assertThat().body("message", equalTo("Этот логин уже используется")) // текст предупреждения не соответствует документации
+        CourierClient courierClient = new CourierClient();
+        courierClient.creationCourier(json);
+        Response courierWithTheSameFieldsResponse = courierClient.creationCourier(json);
+        courierWithTheSameFieldsResponse.then().assertThat().body("message", equalTo("Этот логин уже используется")) // текст предупреждения не соответствует документации
                 .and()
                 .statusCode(409);
     }
 
     @After
     public void cleanUp() {
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        String id = response2.body().asString().replace("\"id\":", "").
+        CourierClient courierClient = new CourierClient();
+        Response loginCourierResponse = courierClient.loginCourier(json);
+        String id = loginCourierResponse.body().asString().replace("\"id\":", "").
                 trim().replace("{", "").replace("}", "");
         String json3 = "{\"id\": " + id + "}";
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json3)
-                        .when()
-                        .delete("/api/v1/courier/" + id);
+        courierClient.deleteCourier(json3, id);
     }
 }
 

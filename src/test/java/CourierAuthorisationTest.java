@@ -1,9 +1,10 @@
+import api.client.CourierClient;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 
@@ -21,131 +22,64 @@ public class CourierAuthorisationTest {
         RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
     }
 
-    @Test
+    @Test @DisplayName("Check authorisation the courier and its statusCode ")
     public void authorisationCourier(){
-       Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
-
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        response2.then().assertThat().statusCode(200);
+        CourierClient courierClient = new CourierClient();
+        courierClient.creationCourier(json);
+        Response loginCourierResponse = courierClient.loginCourier(json);
+        loginCourierResponse.then().assertThat().statusCode(200);
     }
 
-    @Test
+    @Test @DisplayName("Check returning id and statusCode after authorisation the courier")
     public void authorisationCourierReturnID(){
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        Boolean expected = response2.body().asString().contains("id");
+        CourierClient courierClient = new CourierClient();
+        courierClient.creationCourier(json);
+        Response loginCourierResponse = courierClient.loginCourier(json);
+        Boolean expected = loginCourierResponse.body().asString().contains("id");
         assertEquals(expected, true);
-        response2.then().assertThat().statusCode(200);
+        loginCourierResponse.then().assertThat().statusCode(200);
     }
 
-    @Test
+    @Test @DisplayName("Check message and statusCode of authorisation the courier without the login")
     public void authorisationCourierWithoutLogin(){
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
+        CourierClient courierClient = new CourierClient();
+        courierClient.creationCourier(json);
         String json2 = "{\"password\": \"" + password + "\"}";
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        response2.then().assertThat().body("message", equalTo("Недостаточно данных для входа"))
+        Response loginCourierResponse = courierClient.loginCourier(json2);
+        loginCourierResponse.then().assertThat().body("message", equalTo("Недостаточно данных для входа"))
                 .and()
                 .statusCode(400);
     }
 
-    @Test
+    @Test @DisplayName("Check message and statusCode of authorisation the courier with wrong login")
     public void authorisationCourierWithWrongLogin(){
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
+        CourierClient courierClient = new CourierClient();
+        courierClient.creationCourier(json);
         String json2 = "{\"login\": \"vasyugan\",\"password\": \"1237\"}";
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        response2.then().assertThat().body("message", equalTo("Учетная запись не найдена"))
+        Response loginCourierResponse = courierClient.loginCourier(json2);
+        loginCourierResponse.then().assertThat().body("message", equalTo("Учетная запись не найдена"))
                 .and()
                 .statusCode(404);
     }
 
-    @Test
+    @Test @DisplayName("Check message and statusCode of authorisation the courier with wrong password")
     public void authorisationCourierWithWrongPassword(){
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
+        CourierClient courierClient = new CourierClient();
+        courierClient.creationCourier(json);
         String json2 = "{\"login\": \"vasya7\",\"password\": \"1230\"}";
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        response2.then().assertThat().body("message", equalTo("Учетная запись не найдена"))
+        Response loginCourierResponse = courierClient.loginCourier(json2);
+        loginCourierResponse.then().assertThat().body("message", equalTo("Учетная запись не найдена"))
                 .and()
                 .statusCode(404);
     }
 
     @After
     public void cleanUp() {
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        String id = response2.body().asString().replace("\"id\":", "").
+        CourierClient courierClient = new CourierClient();
+        Response loginCourierResponse = courierClient.loginCourier(json);
+        String id = loginCourierResponse.body().asString().replace("\"id\":", "").
                 trim().replace("{", "").replace("}", "");
         String json3 = "{\"id\": " + id + "}";
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json3)
-                        .when()
-                        .delete("/api/v1/courier/" + id);
+        courierClient.deleteCourier(json3, id);
     }
 }

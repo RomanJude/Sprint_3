@@ -1,3 +1,7 @@
+import api.client.CourierClient;
+import api.client.Order;
+import api.client.OrdersClient;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.After;
@@ -5,7 +9,6 @@ import org.junit.Before;
 import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
-import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
 
 public class ListOfOrdersTest {
@@ -25,73 +28,39 @@ public class ListOfOrdersTest {
         RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
     }
 
-    @Test
+    @Test @DisplayName("Getting the list of orders")
     public void listOfOrdersTest() {
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json)
-                        .when()
-                        .post("/api/v1/courier");
+        CourierClient courierClient = new CourierClient();
+        Response createCourierResponse = courierClient.creationCourier(json);
 
         colors.add(" ");
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(order)
-                        .when()
-                        .post("/api/v1/orders");
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        String idCourier = response3.body().asString().replace("\"id\":", "").
+        OrdersClient ordersClient = new OrdersClient();
+        Response orderCreateResponse = ordersClient.creationOrder(order);
+
+        Response loginCourierResponse = courierClient.loginCourier(json2);
+        String idCourier = loginCourierResponse.body().asString().replace("\"id\":", "").
                 trim().replace("{", "").replace("}", "");
-        String idOrder = response2.body().asString().replace("\"track\":", "").
+        String idOrder = orderCreateResponse.body().asString().replace("\"track\":", "").
                 trim().replace("{", "").replace("}", "");
+
         String json4 = "{idOrder + idCourier}";
-        Response response4 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json4)
-                        .when()
-                        .put("/api/v1/orders/accept/" + idOrder + "?courierId=" + idCourier);
-        Response response5 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .when()
-                        .get("/api/v1/orders?courierId=" + idCourier);
-        Boolean expected = response5.body().asString().contains("orders");
+        Response acceptOrderResponse = ordersClient.acceptOfTheOrder(json4, idOrder, idCourier);
+
+        Response listOrdersResponse = ordersClient.listOrders(idCourier);
+
+        Boolean expected = listOrdersResponse.body().asString().contains("orders");
         assertEquals(expected, true);
-        response5.then().assertThat().statusCode(200);
+        listOrdersResponse.then().assertThat().statusCode(200);
     }
 
     @After
     public void cleanUp() {
-        Response response2 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json2)
-                        .when()
-                        .post("/api/v1/courier/login");
-        String id = response2.body().asString().replace("\"id\":", "").
+        CourierClient courierClient = new CourierClient();
+        Response loginCourier = courierClient.loginCourier(json);
+        String id = loginCourier.body().asString().replace("\"id\":", "").
                 trim().replace("{", "").replace("}", "");
         String json3 = "{\"id\": " + id + "}";
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json3)
-                        .when()
-                        .delete("/api/v1/courier/" + id);
+        Response deleteCourier =courierClient.deleteCourier(json3, id);
     }
 }
 

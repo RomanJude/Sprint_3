@@ -1,8 +1,10 @@
+import api.client.Order;
+import api.client.OrdersClient;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
-import static io.restassured.RestAssured.given;
 import java.util.ArrayList;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
@@ -18,106 +20,62 @@ public class CreateOrderTest {
         RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
     }
 
-    @Test
+    @Test @DisplayName("Check creation the order with grey and black color")
     public void creationOrderTest(){
         colors.add("BLACK");
         colors.add("GREY");
-       Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(order)
-                        .when()
-                        .post("/api/v1/orders");
-        String track= response.body().asString().replace("\"track\":", "").
+        OrdersClient ordersClient = new OrdersClient();
+        Response orderCreateResponse = ordersClient.creationOrder(order);
+        String track= orderCreateResponse.body().asString().replace("\"track\":", "").
                 trim().replace("{", "").replace("}", "");
         String json3 = "{\"track\": " + track + "}";
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json3)
-                        .when()
-                        .delete("/api/v1/orders/cancel");
+        ordersClient.cancelOrder(json3);
     }
 
-    @Test
+    @Test  @DisplayName("Check creation the order with black color")
     public void creationOrderBlackTest(){
         colors.add("BLACK");
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(order)
-                        .when()
-                        .post("/api/v1/orders");
-        String track= response.body().asString().replace("\"track\":", "").
+        OrdersClient ordersClient = new OrdersClient();
+        Response orderCreateResponse = ordersClient.creationOrder(order);
+        String track= orderCreateResponse.body().asString().replace("\"track\":", "").
                 trim().replace("{", "").replace("}", "");
         String json3 = "{\"track\": " + track + "}";
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json3)
-                        .when()
-                        .delete("/api/v1/orders/cancel");
+        ordersClient.cancelOrder(json3);
     }
 
-    @Test
+    @Test @DisplayName("Check creation the order with grey color")
     public void creationOrderGreyTest(){
-       colors.add("GREY");
-       Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(order)
-                        .when()
-                        .post("/api/v1/orders");
-        String track= response.body().asString().replace("\"track\":", "").
+        colors.add("GREY");
+        OrdersClient ordersClient = new OrdersClient();
+        Response orderCreateResponse = ordersClient.creationOrder(order);
+        String track = orderCreateResponse.body().asString().replace("\"track\":", "").
                 trim().replace("{", "").replace("}", "");
         String json3 = "{\"track\": " + track + "}";
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json3)
-                        .when()
-                        .delete("/api/v1/orders/cancel");
+        ordersClient.cancelOrder(json3);
     }
 
-    @Test
+    @Test @DisplayName("Check creation the order without color")
     public void creationOrderWithoutColorTest(){
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(order)
-                        .when()
-                        .post("/api/v1/orders");
-        String track= response.body().asString().replace("\"track\":", "").
+        OrdersClient ordersClient = new OrdersClient();
+        Response orderCreateResponse = ordersClient.creationOrder(order);
+        String track= orderCreateResponse.body().asString().replace("\"track\":", "").
                 trim().replace("{", "").replace("}", "");
         String json3 = "{\"track\": " + track + "}";
-        Response response3 =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(json3)
-                        .when()
-                        .delete("/api/v1/orders/cancel");
+        ordersClient.cancelOrder(json3);
     }
 
-    @Test
+    @Test @DisplayName("Check containing the word track after creation the api.client.Order ")
     public void creationOrderContainsTrackTest() {
-        Response response =
-                given()
-                        .header("Content-type", "application/json")
-                        .and()
-                        .body(order)
-                        .when()
-                        .post("/api/v1/orders");
-        Boolean expected = response.body().asString().contains("track");
+        OrdersClient ordersClient = new OrdersClient();
+        Response orderCreateResponse = ordersClient.creationOrder(order);
+        String track= orderCreateResponse.body().asString().replace("\"track\":", "").
+                trim().replace("{", "").replace("}", "");
+        Boolean expected = orderCreateResponse.body().asString().contains("track");
         assertEquals(expected, true);
-        response.then().assertThat().statusCode(201);
+        orderCreateResponse.then().assertThat().statusCode(201);
+        String json3 = "{\"track\": " + track + "}";
+        ordersClient.cancelOrder(json3);
+
     }
 
 }
