@@ -1,0 +1,20 @@
+-------------------------------------------------------------------------------
+Test set: DeleteCourierWithoutIdTest
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 1.861 s <<< FAILURE! - in DeleteCourierWithoutIdTest
+deleteCourierWithoutId(DeleteCourierWithoutIdTest)  Time elapsed: 0.932 s  <<< FAILURE!
+java.lang.AssertionError: 
+1 expectation failed.
+Expected status code <400> but was <404>.
+
+	at DeleteCourierWithoutIdTest.deleteCourierWithoutId(DeleteCourierWithoutIdTest.java:41)
+
+deleteCourierWithWrongId(DeleteCourierWithoutIdTest)  Time elapsed: 0.923 s  <<< FAILURE!
+java.lang.AssertionError: 
+1 expectation failed.
+JSON path message doesn't match.
+Expected: Курьера с таким id нет
+  Actual: Курьера с таким id нет.
+
+	at DeleteCourierWithoutIdTest.deleteCourierWithWrongId(DeleteCourierWithoutIdTest.java:55)
+

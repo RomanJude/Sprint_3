@@ -1,0 +1,7 @@
+ListOfOrdersTest.class
+CourierAuthorisationTest.class
+CreateCourierTest.class
+CreateOrderTest.class
+DeleteCourierWithoutIdTest.class
+CreateCourierWithoutLoginAndPasswordTest.class
+DeleteCourierTest.class
